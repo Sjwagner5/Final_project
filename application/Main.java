@@ -1,4 +1,4 @@
-package application;
+package Final_project.application;
 	
 import javafx.application.Application;
 import javafx.stage.Stage;
