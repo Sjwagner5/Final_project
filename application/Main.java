@@ -19,12 +19,14 @@ import javafx.scene.text.FontWeight;
 
 public class Main extends Application {
     GUI userInterface = new GUI();
+    JSON jsonHelper = new JSON();
   
 	@Override
 	public void start(Stage primaryStage) {
 		try {
+		    //jsonHelper.JSONReader("questions_001.json");
 		    primaryStage.setTitle("Quiz Generator");
-			primaryStage.setScene(userInterface.MainGUI());
+			primaryStage.setScene(userInterface.AddQuestionGUI());
             primaryStage.show();
 			
 		} catch(Exception e) {
