@@ -1,4 +1,4 @@
-package Final_project.application;
+package application;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -93,6 +93,7 @@ public class GUI {
     or.setFont(new Font("Arial", 30));
     
     Button enterQuestion = new Button("Type in your Own Question");
+    enterQuestion.setOnMouseClicked(e -> AddQuestionGUI());
     
     VBox rightSide = new VBox(20, addQuestion, byFile, addFile, or, enterQuestion);
     rightSide.setAlignment(Pos.TOP_CENTER);
