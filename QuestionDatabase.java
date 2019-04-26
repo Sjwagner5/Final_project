@@ -63,12 +63,12 @@ public class QuestionDatabase {
                 topicIndex = topics.size() - 1;
             }
         }
-        ArrayList<Question> quesList = topics.get(topicIndex).quesList;
-        if (quesList.isEmpty()) {
+        ArrayList<Question> quesList = topics.get(topicIndex).quesList; // get topic question list
+        if (quesList.isEmpty()) { // no question in list, add
             quesList.add(newQues);
             return;
         }
-        for (int i = 0; i < quesList.size(); i++) {
+        for (int i = 0; i < quesList.size(); i++) { // search for duplicate question
             if (quesList.get(i).getTopic().equals(newQues.getTopic())
                     && quesList.get(i).getChoices().equals(newQues.getChoices())
                     && quesList.get(i).getQuestion().equals(newQues.getQuestion())
@@ -77,7 +77,18 @@ public class QuestionDatabase {
                 return;
             }
         }
-        quesList.add(newQues);
+        quesList.add(newQues); // not duplicate, add question
+    }
+
+    /**
+     * This method adds an arraylist of questions to the topics arraylist.
+     * 
+     * @param newQuesList
+     */
+    public void addQuestionsList(ArrayList<Question> newQuesList) {
+        for (int i = 0; i < newQuesList.size(); i++) {
+            addQuestions(newQuesList.get(i));
+        }
     }
 
     /**
@@ -89,20 +100,34 @@ public class QuestionDatabase {
         TopicNode newNode = new TopicNode(newTopic);
         topics.add(newNode);
     }
-    
+
+    /**
+     * This method gets all the questions in a single topic.
+     * 
+     * @param topic is the topic of the question
+     * @return a list of questions
+     */
     public ArrayList<Question> get(String topic) {
-      for(int i = 0; i < topics.size(); ++i) {
-        if(topics.get(i).topic.equals(topic)) {
-          return topics.get(i).quesList;
+        for (int i = 0; i < topics.size(); ++i) {
+            if (topics.get(i).topic.equals(topic)) {
+                return topics.get(i).quesList;
+            }
         }
-      }
-      return null;
+        return null;
     }
 
+    /**
+     * This method gets a list of topic lists which contains all questions
+     * 
+     * @return
+     */
     public ArrayList<TopicNode> getList() {
         return topics;
     }
 
+    /**
+     * This method prints all questions
+     */
     public void printList() {
         for (int i = 0; i < topics.size(); i++) {
             for (int j = 0; j < topics.get(i).quesList.size(); j++) {
@@ -110,5 +135,20 @@ public class QuestionDatabase {
                         + topics.get(i).quesList.get(j).getQuestion());
             }
         }
+    }
+
+    /**
+     * This method returns a list of all questions
+     * 
+     * @return
+     */
+    public ArrayList<Question> getAllQuestions() {
+        ArrayList<Question> retList = new ArrayList<Question>();
+        for (int i = 0; i < topics.size(); i++) {
+            for (int j = 0; j < topics.get(i).quesList.size(); j++) {
+                retList.add(topics.get(i).quesList.get(j));
+            }
+        }
+        return retList;
     }
 }
