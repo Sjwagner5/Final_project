@@ -1,4 +1,4 @@
-package application;
+package Final_project;
 
 import java.util.ArrayList;
 
@@ -88,6 +88,15 @@ public class QuestionDatabase {
     private void addTopic(String newTopic) {
         TopicNode newNode = new TopicNode(newTopic);
         topics.add(newNode);
+    }
+    
+    public ArrayList<Question> get(String topic) {
+      for(int i = 0; i < topics.size(); ++i) {
+        if(topics.get(i).topic.equals(topic)) {
+          return topics.get(i).quesList;
+        }
+      }
+      return null;
     }
 
     public ArrayList<TopicNode> getList() {

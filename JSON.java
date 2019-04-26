@@ -1,4 +1,4 @@
-package Final_project.application;
+package Final_project;
 
 import java.util.ArrayList;
 import java.io.FileNotFoundException;
@@ -16,7 +16,6 @@ import org.json.simple.parser.*;
 public class JSON {
    private ArrayList<Question> questionsFromFile;
    private Question toInsert;
-   
    private String topic;
    private String imageFileName;
    private String question;
@@ -71,7 +70,7 @@ public class JSON {
          
          // Check if the solution, if it is setting it to solution
          if(possibleSolution.equals("T")) {
-           solution = possibleSolution;
+           solution = ((String) singleChoice.get("choiceText"));
          }
          
          // Add all possible options for a question to the choices array
@@ -85,8 +84,5 @@ public class JSON {
      
      return questionsFromFile;
    }
-   
-   public void JSONWriter() {
      
-   }
 }
