@@ -242,7 +242,8 @@ public class GUI extends Application {
   public Scene AddQuestionGUI() {
     // Top add question label
     Label addQuestion = new Label("Add Question");
-    addQuestion.setFont(new Font("Arial", 100));
+    addQuestion.setFont(new Font("Arial", 90));
+    addQuestion.setTextFill(Color.DARKRED);
     addQuestion.setAlignment(Pos.TOP_CENTER);
     addQuestion.setPadding(new Insets(0, 0, 20, 0));
 
@@ -289,8 +290,11 @@ public class GUI extends Application {
     enterAnswer.setPadding(new Insets(20, 0, 20, 0));
 
     // Submit Button
+    Button mainMenu = new Button("Main Menu");
+    mainMenu.setFont(new Font("Arial", 20));
     Button submitButton = new Button("Submit");
     submitButton.setFont(new Font("Arial", 20));
+    mainMenu.setOnMouseClicked(e -> this.stage.setScene(MainGUI()));
     submitButton.setOnMouseClicked(e -> addOwnQuestion(newQuestionTxt, topicTxt, option1, option2, option3, option4, option5, answerTxt));
 
     // Blank HBox's to space things out
@@ -300,16 +304,24 @@ public class GUI extends Application {
     blank2.setPadding(new Insets(10, 0, 10, 0));
     HBox blank3 = new HBox();
     blank3.setPadding(new Insets(10, 0, 20, 0));
+    HBox blank4 = new HBox();
+    blank4.setPadding(new Insets(10, 0, 20, 0));
+    HBox blank5 = new HBox();
+    blank5.setPadding(new Insets(10, 0, 10, 0));
+    
+    HBox buttons = new HBox(20, mainMenu, submitButton);
+    buttons.setAlignment(Pos.CENTER);
 
-    VBox root = new VBox(addQuestion, enterNewQuestion, enterNewTopic, optionsLabel, option1,
-        blank1, option2, blank2, option3, blank3, option4, blank3, option5, enterAnswer, submitButton);
+    VBox root = new VBox(addQuestion, enterNewQuestion, enterNewTopic, optionsLabel, blank5, option1,
+        blank1, option2, blank2, option3, blank3, option4, blank4, option5, enterAnswer, buttons);
     root.setAlignment(Pos.CENTER);
     VBox.setMargin(option1, new Insets(0, 200, 0, 200));
     VBox.setMargin(option2, new Insets(0, 200, 0, 200));
     VBox.setMargin(option3, new Insets(0, 200, 0, 200));
     VBox.setMargin(option4, new Insets(0, 200, 0, 200));
+    VBox.setMargin(option5, new Insets(0, 200, 0, 200));
 
-    Scene scene = new Scene(root, 1000, 600);
+    Scene scene = new Scene(root, 1100, 700);
     scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 
     return scene;
@@ -366,6 +378,10 @@ public class GUI extends Application {
         // Read the given file then attempt to insert it into the QuestionBank
         questionsToInsert = jsonHelper.JSONReader(file);
         questionBank.addQuestionsList(questionsToInsert);
+        Alert goodAlert = new Alert(AlertType.CONFIRMATION);
+        goodAlert.setHeaderText("File Succesfully Added");
+        goodAlert.setContentText("The contents of your file were added to the QuestionDatabase");
+        goodAlert.showAndWait();
       }
       // If an exception is caught, display an error message as file was incorrect in some way
       catch(Exception e) {
@@ -385,8 +401,7 @@ public class GUI extends Application {
     }
   }
 
-  
-  // (Buggy)This method adds the users own Question to the quiz database based on the inputs they provided
+  // (Works)This method adds the users own Question to the quiz database based on the inputs they provided
   public void addOwnQuestion(TextField question, TextField topic, TextField option1, TextField option2, TextField option3,
       TextField option4, TextField option5, TextField solution) {
     // If all the fields are filled in, make a new question and add it to the database
@@ -401,6 +416,11 @@ public class GUI extends Application {
       
       // Add the Question to the QuestionBank
       questionBank.addQuestions(toAdd);
+      Alert goodAlert = new Alert(AlertType.CONFIRMATION);
+      goodAlert.setHeaderText("Succesful Addition of Question");
+      goodAlert.setContentText("The Question was succesfully added to the database");
+      goodAlert.showAndWait();
+      this.stage.setScene(MainGUI());
     }
     // Display an error message if any inputs are not valid
     else {

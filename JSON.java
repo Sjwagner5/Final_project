@@ -66,15 +66,15 @@ public class JSON {
          // Make an object instance of a single choice
          JSONObject singleChoice = (JSONObject) choicesPackage.get(j);
          
-         String possibleSolution = (String) singleChoice.get("isCorrect");
+         String possibleSolution = (String) singleChoice.get("iscorrect");
          
          // Check if the solution, if it is setting it to solution
          if(possibleSolution.equals("T")) {
-           solution = ((String) singleChoice.get("choiceText"));
+           solution = ((String) singleChoice.get("choice"));
          }
          
          // Add all possible options for a question to the choices array
-         choices.add((String) singleChoice.get("choiceText"));
+         choices.add((String) singleChoice.get("choice"));
        }
        
        // Make an instance of a question and add it to the question ArrayList
