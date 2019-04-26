@@ -1,6 +1,7 @@
 package Final_project;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -9,6 +10,8 @@ import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -27,8 +30,9 @@ public class GUI extends Application {
   Stage stage = new Stage();
   JSON jsonHelper = new JSON();
   ArrayList<Question> quiz;
-  QuestionDatabase questionBank;
+  QuestionDatabase questionBank = new QuestionDatabase();
   ArrayList<String> topics = new ArrayList<String>();
+  ArrayList<String> topicsForThisQuiz; // Keeps track off the topics requested for this specific quiz
   int quizLength = 0;
   ArrayList<Scene> questionGUI;
 
@@ -36,12 +40,10 @@ public class GUI extends Application {
   public GUI() {
   }
 
-
-
   @Override
   public void start(Stage primaryStage) {
     try {
-      // jsonHelper.JSONReader("questions_001.json");
+      //jsonHelper.JSONReader("questions_001.json");
       primaryStage = stage;
       primaryStage.setTitle("Quiz Generator");
       primaryStage.setScene(MainGUI());
@@ -57,6 +59,7 @@ public class GUI extends Application {
   }
 
   public Scene MainGUI() {
+    topicsForThisQuiz = new ArrayList<String>();
     BorderPane root = new BorderPane();
     Scene scene = new Scene(root, 1200, 600);
     scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
@@ -82,11 +85,8 @@ public class GUI extends Application {
     Label topicSelection = new Label("Topic Selection:");
     topicSelection.setFont(new Font("Arial", 30));
 
-    // Combo Box
-    String topicChoices[] = {"Hash Table", "RBT", "AVL Tree", "Graphs"};
-
     ComboBox<String> choicesDropDown =
-        new ComboBox<String>(FXCollections.observableArrayList(topicChoices));
+        new ComboBox<String>(FXCollections.observableArrayList(topics));
     
 
     // Add choices button
@@ -122,8 +122,14 @@ public class GUI extends Application {
     Label byFile = new Label("By File:");
     byFile.setFont(new Font("Arial", 30));
 
+    // Text for Adding File
+    TextField addFileTxt = new TextField();
+    
     // Add File Button
     Button addFile = new Button("Add File");
+    
+    // If the add file button is clicked, the file typed in is attempted to be added to quiz
+    addFile.setOnMouseClicked(e -> addFileToQuiz(addFileTxt));
 
     // Label for or
     Label or = new Label("Or");
@@ -132,7 +138,7 @@ public class GUI extends Application {
     Button enterQuestion = new Button("Type in your Own Question");
     enterQuestion.setOnMouseClicked(e -> this.stage.setScene(AddQuestionGUI()));
 
-    VBox rightSide = new VBox(20, addQuestion, byFile, addFile, or, enterQuestion);
+    VBox rightSide = new VBox(20, addQuestion, byFile, addFileTxt, addFile, or, enterQuestion);
     rightSide.setAlignment(Pos.TOP_CENTER);
     root.setRight(rightSide);
     // Insets(top, right, bottom, left)
@@ -270,6 +276,8 @@ public class GUI extends Application {
     option3.setAlignment(Pos.CENTER);
     TextField option4 = new TextField("Option 4");
     option4.setAlignment(Pos.CENTER);
+    TextField option5 = new TextField("Option 5");
+    option5.setAlignment(Pos.CENTER);
 
     // Answer text box
     Label answerLabel = new Label("Answer: ");
@@ -283,7 +291,7 @@ public class GUI extends Application {
     // Submit Button
     Button submitButton = new Button("Submit");
     submitButton.setFont(new Font("Arial", 20));
-    submitButton.setOnMouseClicked(e -> this.stage.setScene(MainGUI()));
+    submitButton.setOnMouseClicked(e -> addOwnQuestion(newQuestionTxt, topicTxt, option1, option2, option3, option4, option5, answerTxt));
 
     // Blank HBox's to space things out
     HBox blank1 = new HBox();
@@ -294,7 +302,7 @@ public class GUI extends Application {
     blank3.setPadding(new Insets(10, 0, 20, 0));
 
     VBox root = new VBox(addQuestion, enterNewQuestion, enterNewTopic, optionsLabel, option1,
-        blank1, option2, blank2, option3, blank3, option4, enterAnswer, submitButton);
+        blank1, option2, blank2, option3, blank3, option4, blank3, option5, enterAnswer, submitButton);
     root.setAlignment(Pos.CENTER);
     VBox.setMargin(option1, new Insets(0, 200, 0, 200));
     VBox.setMargin(option2, new Insets(0, 200, 0, 200));
@@ -315,6 +323,7 @@ public class GUI extends Application {
     c.getItems().remove(c.getValue());
     c.setValue("");
   }
+  
   private void getQuizSize(TextField t) {
     this.quizLength = Integer.parseInt(t.getText());
   }
@@ -346,5 +355,61 @@ public class GUI extends Application {
     next.setOnMouseClicked(e -> runQuiz(next, previous, question + 1));
   }
 
+  // (Works)This method adds Questions to the quiz based on the file typed in by the user when
+  // they click AddFile on the MainGUI
+  public void addFileToQuiz(TextField fileToAdd) {
+    // First, check to make sure the file isn't null and empty
+    if(fileToAdd.getText() != null && !fileToAdd.getText().isEmpty()) {
+      ArrayList<Question> questionsToInsert = new ArrayList<Question>();
+      String file = fileToAdd.getText();
+      try {
+        // Read the given file then attempt to insert it into the QuestionBank
+        questionsToInsert = jsonHelper.JSONReader(file);
+        questionBank.addQuestionsList(questionsToInsert);
+      }
+      // If an exception is caught, display an error message as file was incorrect in some way
+      catch(Exception e) {
+        e.printStackTrace();
+        Alert errorAlert = new Alert(AlertType.ERROR);
+        errorAlert.setHeaderText("File is not Valid");
+        errorAlert.setContentText("Your provided file resulted in an exception");
+        errorAlert.showAndWait();
+      } 
+    }
+    // If there is no input, display an error message
+    else {
+      Alert errorAlert = new Alert(AlertType.ERROR);
+      errorAlert.setHeaderText("File is not Valid");
+      errorAlert.setContentText("You failed to provide a usable file");
+      errorAlert.showAndWait();
+    }
+  }
+
+  
+  // (Buggy)This method adds the users own Question to the quiz database based on the inputs they provided
+  public void addOwnQuestion(TextField question, TextField topic, TextField option1, TextField option2, TextField option3,
+      TextField option4, TextField option5, TextField solution) {
+    // If all the fields are filled in, make a new question and add it to the database
+    if(!(question.getText().isEmpty() || topic.getText().isEmpty() || option1.getText().isEmpty() || option2.getText().isEmpty()
+        || option3.getText().isEmpty() || option4.getText().isEmpty() || option5.getText().isEmpty() || solution.getText().isEmpty())) {
+      
+      // Add  all the options to an ArrayList
+      ArrayList<String> options = new ArrayList<String>(Arrays.asList(option1.getText(), option2.getText(), option3.getText(), option4.getText(), option5.getText()));
+      
+      // Make a new instance of a topic with all the pertinent values
+      Question toAdd = new Question(topic.getText(), "none", question.getText(), options, solution.getText());
+      
+      // Add the Question to the QuestionBank
+      questionBank.addQuestions(toAdd);
+    }
+    // Display an error message if any inputs are not valid
+    else {
+      Alert errorAlert = new Alert(AlertType.ERROR);
+      errorAlert.setHeaderText("Question is not Valid");;
+      errorAlert.setContentText("Please fill out all available fields");
+      errorAlert.showAndWait();
+    }
+  }
+  
 }
 
