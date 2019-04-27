@@ -124,7 +124,20 @@ public class QuestionDatabase {
     public ArrayList<TopicNode> getList() {
         return topics;
     }
-
+    
+    /**
+     * This method returns a list of questions for a single topic
+     * @param topic is the topic requested
+     * @return an arraylist of questions
+     */
+    public ArrayList<Question> getTopic(String topic) {
+        ArrayList<Question> retList = new ArrayList<Question>();
+        for (int i = 0; i < topics.size(); i++) {
+            retList = topics.get(i).quesList;
+        }
+        return retList;
+    }
+    
     /**
      * This method prints all questions
      */
