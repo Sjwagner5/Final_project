@@ -56,7 +56,7 @@ public class JSON {
        topic = (String) singleQuestion.get("topic");
        
        // Get the image file name
-       imageFileName = (String) singleQuestion.get("imageFilename");
+       imageFileName = (String) singleQuestion.get("image");
        
        // Make an array of the choices for the question
        JSONArray choicesPackage = (JSONArray) singleQuestion.get("choiceArray");
