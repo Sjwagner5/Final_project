@@ -115,6 +115,19 @@ public class QuestionDatabase {
         }
         return null;
     }
+    
+    
+    /**
+     * This method returns a list of all topics
+     * @return  a list of all topics
+     */
+    public ArrayList<String> getAllTopics() {
+        ArrayList<String> retList = new ArrayList<String>();
+        for (int i = 0; i < topics.size(); i ++) {
+            retList.add(topics.get(i).topic);
+        }
+        return retList;
+    }
 
     /**
      * This method gets a list of topic lists which contains all questions
