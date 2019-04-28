@@ -1,5 +1,7 @@
 package Final_project;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
@@ -12,6 +14,8 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -193,6 +197,18 @@ public class GUI extends Application {
      */
     centerPane.setCenter(grid);
 
+    // 
+    try {
+      FileInputStream input = new FileInputStream("Webp.net-resizeimage.jpg");
+      Image img = new Image(input);
+      ImageView display = new ImageView(img);
+    }
+    catch(Exception e) {
+      Alert badAlarm = new Alert(AlertType.WARNING);
+      badAlarm.setHeaderText("Problems Loading Image");
+      badAlarm.setContentText("The image for the current question couldn't be loaded due "
+          + "to th file not being found");
+    }
 
     Label ansLab = new Label("Answer: ");
     ansLab.setFont(new Font("", 30));
