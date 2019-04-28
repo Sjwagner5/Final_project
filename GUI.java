@@ -33,12 +33,12 @@ import javafx.stage.Stage;
 public class GUI extends Application {
   Stage stage = new Stage();
   JSON jsonHelper = new JSON();
-  ArrayList<Question> quiz;
+  ArrayList<Question> quiz = new ArrayList<Question>();
   QuestionDatabase questionBank = new QuestionDatabase();
   ArrayList<String> topics = new ArrayList<String>();
   ArrayList<String> topicsForThisQuiz; // Keeps track off the topics requested for this specific quiz
   int quizLength = 0;
-  ArrayList<Scene> questionGUI;
+  ArrayList<QuestionNode> questionGUI = new ArrayList<QuestionNode>();
 
   // Default, no argument constructor
   public GUI() {
@@ -107,7 +107,7 @@ public class GUI extends Application {
 
     // Generate Quiz Button
     Button generateQuiz = new Button("Generate Quiz");
-    generateQuiz.setOnMouseClicked(e -> this.stage.setScene(QuizGUI()));
+    generateQuiz.setOnMouseClicked(e -> generateQuiz(txt));
 
     VBox leftSide = new VBox(20, makeQuiz, topicSelection, choicesDropDown, addAChoice,
         numberOfQuestions, txt, generateQuiz);
@@ -170,7 +170,7 @@ public class GUI extends Application {
     return scene;
   }
 
-  public Scene QuizGUI() {
+  public Scene QuizGUI(Question q, Button next, Button previous, ComboBox<String> answers, Button submit) {
     BorderPane root = new BorderPane();
 
     Scene scene = new Scene(root, 1200, 600);
@@ -184,8 +184,7 @@ public class GUI extends Application {
     grid.setPadding(new Insets(50, 50, 50, 50));
     root.setCenter(grid);
 
-    Label quesLab = new Label(
-        "Question: " + "put actual question here padding padding padding padding padding");
+    Label quesLab = new Label(q.getQuestion());
     quesLab.setFont(new Font("", 30));
     BorderPane centerPane = new BorderPane();
     root.setCenter(centerPane);
@@ -197,19 +196,22 @@ public class GUI extends Application {
      */
     centerPane.setCenter(grid);
 
-    // 
-    try {
-      FileInputStream input = new FileInputStream("Webp.net-resizeimage.jpg");
-      Image img = new Image(input);
-      ImageView display = new ImageView(img);
+    /*
+    if (!q.getImageFileName().equals("none")) {
+      try {
+          FileInputStream input = new FileInputStream(q.getImageFileName());
+          Image img = new Image(input);
+          ImageView display = new ImageView(img);
+          grid.add(display, 0, 0);
+      } catch (Exception e) {
+          Alert badAlarm = new Alert(AlertType.WARNING);
+          badAlarm.setHeaderText("Problems Loading Image");
+          badAlarm.setContentText("The image for the current question couldn't be loaded due "
+                  + "to the file not being found");
+      }
     }
-    catch(Exception e) {
-      Alert badAlarm = new Alert(AlertType.WARNING);
-      badAlarm.setHeaderText("Problems Loading Image");
-      badAlarm.setContentText("The image for the current question couldn't be loaded due "
-          + "to th file not being found");
-    }
-
+    */
+    
     Label ansLab = new Label("Answer: ");
     ansLab.setFont(new Font("", 30));
     grid.setPadding(new Insets(100, 0, 0, 0));
@@ -217,7 +219,7 @@ public class GUI extends Application {
     grid.add(ansLab, 0, 0);
 
     String tempAns[] = {"A", "B", "C", "D"}; // create a drop down menu to the left
-    ComboBox<String> ans = new ComboBox<String>(FXCollections.observableArrayList(tempAns));
+    ComboBox<String> ans = answers; //new ComboBox<String>(FXCollections.observableArrayList(tempAns));
     grid.add(ans, 1, 0);
     scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 
@@ -229,9 +231,10 @@ public class GUI extends Application {
     bottomGrid.setPrefWidth(100);
     bottomGrid.setPrefHeight(50);
 
-    Button subButton = new Button("Submit");
-    Button prevButton = new Button("Previous");
-    Button nextButton = new Button("Next");
+    Button subButton = submit;
+    subButton.setOnMouseClicked(e -> this.stage.setScene(EndQuizGUI()));
+    Button prevButton = previous;
+    Button nextButton = next;
     Button menuButton = new Button("Main Menu");
     menuButton.setOnMouseClicked(e -> this.stage.setScene(MainGUI()));
 
@@ -360,14 +363,16 @@ public class GUI extends Application {
   public void generateQuiz(TextField t) {
     getQuizSize(t);
     int numberOfTopics = this.topics.size();
-    int questionsPerTopic = (int) quizLength / numberOfTopics;
+    int questionsPerTopic = 1 + (int) quizLength / numberOfTopics;
     Random r = new Random();
     String currTopic = "";
     for(int i = 0; i < this.topics.size(); i++) {
       currTopic = this.topics.get(i);
-      for(int j = 0; j < questionsPerTopic; j++) {
+      int j = 0;
+      while(j < questionsPerTopic && quiz.size() < quizLength) {
         this.quiz.add(this.questionBank.get(currTopic).get
             (r.nextInt(this.questionBank.get(currTopic).size())));
+        ++j;
       }
     }
     while(quiz.size() < this.quizLength) {
@@ -375,13 +380,32 @@ public class GUI extends Application {
           (r.nextInt(this.questionBank.get(currTopic).size())));
     }
     for(int i = 0; i < this.quiz.size(); i++) {
-      this.questionGUI.add(QuizGUI());
+      QuestionNode curr = new QuestionNode(quiz.get(i), new Button("Next"), 
+          new Button("Previous"), new Button("Submit"));
+      this.questionGUI.add(curr);
+      curr.setDisplay(this.QuizGUI(curr.getQuestion(), curr.getNextButton(), curr.getPreviousButton()
+          , curr.getAnswers(), curr.getSubmit()));
+      
     }
+    runQuiz(questionGUI.get(0).getNextButton(), 
+        questionGUI.get(0).getPreviousButton(), 0, 
+        questionGUI.get(0).getSubmit(), questionGUI.get(0).getAnswers());
   }
   
-  public void runQuiz(Button next, Button previous, int question) {
-    this.stage.setScene(questionGUI.get(question));
-    next.setOnMouseClicked(e -> runQuiz(next, previous, question + 1));
+  public void runQuiz(Button next, Button previous, int question, Button submit, ComboBox<String> answers) {
+    this.stage.setScene(questionGUI.get(question).getDisplay());
+    submit.setOnMouseClicked(e -> checkAnswer(questionGUI.get(question).getQuestion().getSolution(),
+        answers));
+    if(question == quiz.size() - 1) {
+      next.setOnMouseClicked(e -> this.stage.setScene(EndQuizGUI()));
+    } else {
+    next.setOnMouseClicked(e -> runQuiz(questionGUI.get(question + 1).getNextButton(), 
+        questionGUI.get(question + 1).getPreviousButton(), question + 1, 
+        questionGUI.get(question + 1).getSubmit(), questionGUI.get(question + 1).getAnswers()));
+    }
+    previous.setOnMouseClicked(e -> runQuiz(questionGUI.get(question - 1).getNextButton(), 
+        questionGUI.get(question - 1).getPreviousButton(), question - 1, 
+        questionGUI.get(question - 1).getSubmit(), questionGUI.get(question - 1).getAnswers()));
   }
 
   // (Works)This method adds Questions to the quiz based on the file typed in by the user when
@@ -449,5 +473,16 @@ public class GUI extends Application {
     }
   }
   
+  public void checkAnswer(String solution, ComboBox<String> answers) {
+    if(answers.getValue().equals(solution)) {
+      Alert correctAlert = new Alert(AlertType.CONFIRMATION);
+      correctAlert.setContentText("Answer correct!");
+      correctAlert.showAndWait();
+    } else {
+      Alert wrongAlert = new Alert(AlertType.ERROR);
+      wrongAlert.setContentText("Answer wrong. The correct answer is " + solution);
+      wrongAlert.showAndWait();
+    }
+  } 
 }
 

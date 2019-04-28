@@ -1,4 +1,4 @@
-package application;
+package Final_project;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -26,11 +26,15 @@ public class QuestionNode {
   private Button previousButton;
   private Question question;
   private Scene display;
+  private ComboBox answerChoices;
+  private Button submit;
   
-  public QuestionNode(Question q, Button next, Button previous) {
+  public QuestionNode(Question q, Button next, Button previous, Button submit) {
     this.nextButton = next;
     this.previousButton = previous;
     this.question = q;
+    answerChoices = new ComboBox<String>(FXCollections.observableArrayList(q.getChoices()));
+    this.submit = submit;
   }
   
   public Button getNextButton() {
@@ -51,6 +55,18 @@ public class QuestionNode {
   
   public Question getQuestion() {
     return this.question;
+  }
+  
+  public String getAnswer() {
+    return (String) this.answerChoices.getValue();
+  }
+  
+  public ComboBox<String> getAnswers() {
+    return this.answerChoices;
+  }
+  
+  public Button getSubmit() {
+    return this.submit;
   }
 
 }
