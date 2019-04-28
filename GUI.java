@@ -85,6 +85,7 @@ public class GUI extends Application {
     Label topicSelection = new Label("Topic Selection:");
     topicSelection.setFont(new Font("Arial", 30));
 
+    topics = questionBank.getAllTopics();
     ComboBox<String> choicesDropDown =
         new ComboBox<String>(FXCollections.observableArrayList(topics));
     
@@ -382,6 +383,7 @@ public class GUI extends Application {
         goodAlert.setHeaderText("File Succesfully Added");
         goodAlert.setContentText("The contents of your file were added to the QuestionDatabase");
         goodAlert.showAndWait();
+        stage.setScene(MainGUI());
       }
       // If an exception is caught, display an error message as file was incorrect in some way
       catch(Exception e) {
