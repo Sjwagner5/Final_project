@@ -5,7 +5,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.Random;
+import javafx.animation.PauseTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -29,18 +31,20 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import javafx.util.Duration;
 
 public class GUI extends Application {
   Stage stage = new Stage();
   JSON jsonHelper = new JSON();
-  ArrayList<Question> quiz = new ArrayList<Question>();
+  ArrayList<Question> quiz;
   QuestionDatabase questionBank = new QuestionDatabase();
   ArrayList<String> topics = new ArrayList<String>();
   ArrayList<String> topicsForThisQuiz; // Keeps track off the topics requested for this specific quiz
   int quizLength = 0;
-  ArrayList<QuestionNode> questionGUI = new ArrayList<QuestionNode>();
+  ArrayList<QuestionNode> questionGUI;
 
   // Default, no argument constructor
   public GUI() {
@@ -354,21 +358,62 @@ public class GUI extends Application {
     c.setValue("");
   }
   
+  // Returns true if questions are maximized
   private void getQuizSize(TextField t) {
     this.quizLength = Integer.parseInt(t.getText());
     int maxQuestions = 0;
-    for(int i = 0; i < this.topics.size(); i++) {
-      maxQuestions += this.questionBank.get(this.topics.get(i)).size();
+    for(int i = 0; i < this.topicsForThisQuiz.size(); i++) {
+      maxQuestions += this.questionBank.get(this.topicsForThisQuiz.get(i)).size();
     }
+    // If too many questions are requested for the given topics, tell how many can be requested
     if(maxQuestions < this.quizLength) {
+      Alert badAlert = new Alert(AlertType.ERROR);
+      badAlert.setContentText("You requested to many questions for the Databse to fulfill based on you topics, the database only "
+          + "has " + maxQuestions + " questions for the specified topics. Quiz will be run on maximum available");
+      badAlert.setHeaderText("Too Many Questions Requested");
+      badAlert.showAndWait();
       this.quizLength = maxQuestions;
     }
   }
   
   public void generateQuiz(TextField t) {
+    quiz = new ArrayList<Question>();
+    questionGUI = new ArrayList<QuestionNode>();
+    getQuizSize(t);
     try {
+      LinkedList<Question> visited = new LinkedList<Question>();
+      
       int score = 0;
-      getQuizSize(t);
+      // Make an array list with all of the possible questions from the available topics
+      ArrayList<Question> possibleQuestionsForQuiz = new ArrayList<Question>();
+      for(int i = 0; i < topicsForThisQuiz.size(); ++i) {
+        String currTopic = topicsForThisQuiz.get(i);
+        ArrayList<Question> holder = questionBank.get(currTopic);
+        for(int j = 0; j < holder.size(); ++j) {
+          possibleQuestionsForQuiz.add(holder.get(j));
+        }
+      }
+      
+      Random rand = new Random();
+      int QuestionsInQuiz = 0;
+      // Randomly add questions to quiz, marking visited as such, while you have less questions 
+      // then requested
+      while(QuestionsInQuiz < quizLength) {
+        int holder = Math.abs(rand.nextInt()) % possibleQuestionsForQuiz.size();
+        Question currQuestion = possibleQuestionsForQuiz.get(holder);
+        // If the question is already in the quiz, don't add it and look for another
+        if(visited.contains(currQuestion)) {
+          continue;
+        }
+        // If question isn't in quiz, add it, add it to visited, and increment number in quiz
+        else {
+          quiz.add(currQuestion);
+          visited.add(currQuestion);
+          QuestionsInQuiz++;
+        }
+      }
+      
+      /*
       int numberOfTopics = this.topicsForThisQuiz.size();
       int questionsPerTopic = 1 + (int) quizLength / numberOfTopics;
       Random r = new Random();
@@ -386,6 +431,9 @@ public class GUI extends Application {
         this.quiz.add(this.questionBank.get(currTopic).get
             (r.nextInt(this.questionBank.get(currTopic).size())));
       }
+      */
+      
+      // Make all questions into Question Nodes so they can be displayed
       for(int i = 0; i < this.quiz.size(); i++) {
         QuestionNode curr = new QuestionNode(quiz.get(i), new Button("Next"));
         this.questionGUI.add(curr);
@@ -549,13 +597,28 @@ public class GUI extends Application {
     yes.setOnMouseClicked(e -> {
       try {
         jsonHelper.JSONWriter(questionBank.getAllQuestions(), true);
-        finalStage.close();
-      } catch (IOException e1) {
-        e1.printStackTrace();
       }
+      catch(Exception e1) {
+        Alert badAlert = new Alert(AlertType.ERROR);
+        badAlert.setContentText("Unable to Save Questions to File");
+        badAlert.setHeaderText("Unable to Save");
+        badAlert.showAndWait();
+        finalStage.close();
+      }
+      Label saving = new Label("Saving file to .JSON... Please Wait");
+      saving.setFont(new Font("Arial", 30));
+      saving.setAlignment(Pos.CENTER);
+      Scene savingScene = new Scene(saving, 1000, 200);
+      finalStage.setScene(savingScene);
+      finalStage.show();
+      
+      PauseTransition delay = new PauseTransition(Duration.seconds(5));
+      delay.setOnFinished(finishedEvent -> finalStage.close());
+      delay.play();
     });
     no.setOnMouseClicked(e -> finalStage.close());
     
   }
+
 }
 
