@@ -29,20 +29,14 @@ public class QuestionNode {
   private ComboBox answerChoices;
   private Button submit;
   
-  public QuestionNode(Question q, Button next, Button previous, Button submit) {
+  public QuestionNode(Question q, Button next) {
     this.nextButton = next;
-    this.previousButton = previous;
     this.question = q;
     answerChoices = new ComboBox<String>(FXCollections.observableArrayList(q.getChoices()));
-    this.submit = submit;
   }
   
   public Button getNextButton() {
     return this.nextButton;
-  }
-  
-  public Button getPreviousButton() {
-    return this.previousButton;
   }
   
   public void setDisplay(Scene s) {
@@ -64,9 +58,4 @@ public class QuestionNode {
   public ComboBox<String> getAnswers() {
     return this.answerChoices;
   }
-  
-  public Button getSubmit() {
-    return this.submit;
-  }
-
 }

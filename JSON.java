@@ -84,5 +84,42 @@ public class JSON {
      
      return questionsFromFile;
    }
+   
+   /**
+    * This method writes the user finished questions
+    * 
+    * @param quesList  a list of questions
+    * @param save      if the user wants to save
+    * @throws IOException  
+    */
+   public void JSONWriter(ArrayList<Question> quesList, boolean save) throws IOException {
+       JSONObject outputFile = new JSONObject(); // the out most json
+       JSONObject questions = new JSONObject(); // the questions json
+       for (int i = 0; i < quesList.size(); i++) {
+           questions.put("meta-data", "unused"); // add multiple fields
+           questions.put("questionText", quesList.get(i).getQuestion());
+           questions.put("topic", quesList.get(i).getTopic());
+           questions.put("image", quesList.get(i).getImageFileName());
+           JSONObject choices = new JSONObject();
+           String correct = quesList.get(i).getSolution();
+           for (int j = 0; j < quesList.get(i).getChoices().size(); j++) { // get all choices
+               if (correct.equals(quesList.get(i).getChoices().get(j))) {
+                   choices.put("isCorrect", "T");
+                   continue;
+               }
+               choices.put("isCorrect", "F");
+           }
+           questions.put("choiceArray", choices);
+       }
+       outputFile.put("choiceArray", questions);
+       FileWriter file = new FileWriter("save1.json");
+       if (save) { // if user wants to save, write to a file
+           file.write(outputFile.toJSONString());
+           file.flush();
+           file.close();
+       }
+       
+       
+   }
      
 }
