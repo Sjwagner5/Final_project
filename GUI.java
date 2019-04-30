@@ -3,6 +3,7 @@ package Final_project;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -172,8 +173,19 @@ public class GUI extends Application {
     Scene scene = new Scene(root, 400, 400);
 
     Label finalScore = new Label("Final Score: " + score + "/" + quiz.size());
-    finalScore.setFont(new Font("", 30));
-    root.setCenter(finalScore);
+    finalScore.setTextFill(Color.DARKRED);
+    finalScore.setFont(Font.font("Arial", FontWeight.BOLD, 30));
+    
+    Double percent = ((double) score) / ((double) quiz.size()) * 100;
+    DecimalFormat df = new DecimalFormat("###.#");
+    Label finalPercentage = new Label("Percentage: " + df.format(percent) + "%");
+    finalPercentage.setTextFill(Color.DARKRED);
+    finalPercentage.setFont(Font.font("Arial", FontWeight.BOLD, 30));
+    
+    VBox scores = new VBox(20, finalScore, finalPercentage);
+        
+    root.setCenter(scores);
+    scores.setAlignment(Pos.TOP_CENTER);
 
     scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
     Button newButton = new Button("Done");
@@ -183,15 +195,16 @@ public class GUI extends Application {
     return scene;
   }
 
-  public Scene QuizGUI(Question q, Button next, ComboBox<String> answers) {
+  public Scene QuizGUI(Question q, Button next, ComboBox<String> answers, int number) {
     BorderPane root = new BorderPane();
 
     Scene scene = new Scene(root, 1200, 600);
     BorderPane topPane = new BorderPane();
     root.setTop(topPane);
     topPane.setPadding(new Insets(20, 50, 0, 50));
-    Label lab = new Label("Quiz");
-    lab.setFont(new Font("", 30));
+    Label lab = new Label("Quiz: Question " + number + " of " + quiz.size());
+    lab.setFont(Font.font("", FontWeight.BOLD, 30));
+    lab.setTextFill(Color.DARKRED);
     topPane.setCenter(lab);
     GridPane grid = new GridPane();
     grid.setPadding(new Insets(50, 50, 50, 50));
@@ -199,23 +212,19 @@ public class GUI extends Application {
 
     Label quesLab = new Label(q.getQuestion());
     quesLab.setFont(new Font("", 30));
+    quesLab.setWrapText(true);
     BorderPane centerPane = new BorderPane();
     root.setCenter(centerPane);
     centerPane.setTop(quesLab);
     centerPane.setPadding(new Insets(50, 50, 50, 50));
-    /*
-     * Label spacing = new Label(""); spacing.setFont(new Font("", 30));
-     * centerPane.setCenter(spacing);
-     */
     centerPane.setCenter(grid);
 
-    /*
     if (!q.getImageFileName().equals("none")) {
       try {
           FileInputStream input = new FileInputStream(q.getImageFileName());
           Image img = new Image(input);
           ImageView display = new ImageView(img);
-          grid.add(display, 0, 0);
+          centerPane.setRight(display);
       } catch (Exception e) {
           Alert badAlarm = new Alert(AlertType.WARNING);
           badAlarm.setHeaderText("Problems Loading Image");
@@ -223,9 +232,9 @@ public class GUI extends Application {
                   + "to the file not being found");
       }
     }
-    */
     
     Label ansLab = new Label("Answer: ");
+    ansLab.setTextFill(Color.DARKRED);
     ansLab.setFont(new Font("", 30));
     grid.setPadding(new Insets(100, 0, 0, 0));
     grid.setVgap(30);
@@ -264,14 +273,15 @@ public class GUI extends Application {
   public Scene AddQuestionGUI() {
     // Top add question label
     Label addQuestion = new Label("Add Question");
-    addQuestion.setFont(new Font("Arial", 90));
+    addQuestion.setFont(Font.font("Arial", FontWeight.BOLD, 90));
     addQuestion.setTextFill(Color.DARKRED);
     addQuestion.setAlignment(Pos.TOP_CENTER);
-    addQuestion.setPadding(new Insets(0, 0, 20, 0));
+    addQuestion.setPadding(new Insets(0, 0, 15, 0));
 
     // Question text box
     Label questionLabel = new Label("Question: ");
     questionLabel.setFont(new Font("Arial", 30));
+    questionLabel.setTextFill(Color.DARKRED);
     TextField newQuestionTxt = new TextField();
 
     HBox enterNewQuestion = new HBox(questionLabel, newQuestionTxt);
@@ -280,6 +290,7 @@ public class GUI extends Application {
 
     // Topic text box
     Label topicLabel = new Label("Topic: ");
+    topicLabel.setTextFill(Color.DARKRED);
     topicLabel.setFont(new Font("Arial", 30));
     TextField topicTxt = new TextField();
 
@@ -289,6 +300,7 @@ public class GUI extends Application {
 
     // Options and text boxes
     Label optionsLabel = new Label("Options:");
+    optionsLabel.setTextFill(Color.DARKRED);
     optionsLabel.setFont(new Font("Arial", 30));
 
     TextField option1 = new TextField("Option 1");
@@ -304,6 +316,7 @@ public class GUI extends Application {
 
     // Answer text box
     Label answerLabel = new Label("Answer: ");
+    answerLabel.setTextFill(Color.DARKRED);
     answerLabel.setFont(new Font("Arial", 30));
     TextField answerTxt = new TextField();
 
@@ -358,7 +371,6 @@ public class GUI extends Application {
     c.setValue("");
   }
   
-  // Returns true if questions are maximized
   private void getQuizSize(TextField t) {
     this.quizLength = Integer.parseInt(t.getText());
     int maxQuestions = 0;
@@ -377,80 +389,162 @@ public class GUI extends Application {
   }
   
   public void generateQuiz(TextField t) {
+
     quiz = new ArrayList<Question>();
+
     questionGUI = new ArrayList<QuestionNode>();
-    getQuizSize(t);
+
     try {
+      
+      getQuizSize(t);
+
       LinkedList<Question> visited = new LinkedList<Question>();
-      
+
+     
+
       int score = 0;
+
       // Make an array list with all of the possible questions from the available topics
+
       ArrayList<Question> possibleQuestionsForQuiz = new ArrayList<Question>();
+
       for(int i = 0; i < topicsForThisQuiz.size(); ++i) {
+
         String currTopic = topicsForThisQuiz.get(i);
+
         ArrayList<Question> holder = questionBank.get(currTopic);
+
         for(int j = 0; j < holder.size(); ++j) {
+
           possibleQuestionsForQuiz.add(holder.get(j));
+
         }
+
       }
-      
+
+     
+
       Random rand = new Random();
+
       int QuestionsInQuiz = 0;
-      // Randomly add questions to quiz, marking visited as such, while you have less questions 
+
+      // Randomly add questions to quiz, marking visited as such, while you have less questions
+
       // then requested
+
       while(QuestionsInQuiz < quizLength) {
+
         int holder = Math.abs(rand.nextInt()) % possibleQuestionsForQuiz.size();
+
         Question currQuestion = possibleQuestionsForQuiz.get(holder);
+
         // If the question is already in the quiz, don't add it and look for another
+
         if(visited.contains(currQuestion)) {
+
           continue;
+
         }
+
         // If question isn't in quiz, add it, add it to visited, and increment number in quiz
+
         else {
+
           quiz.add(currQuestion);
+
           visited.add(currQuestion);
+
           QuestionsInQuiz++;
+
         }
+
       }
-      
+
+     
+
       /*
+
       int numberOfTopics = this.topicsForThisQuiz.size();
+
       int questionsPerTopic = 1 + (int) quizLength / numberOfTopics;
+
       Random r = new Random();
+
       String currTopic = "";
+
       for(int i = 0; i < this.topicsForThisQuiz.size(); i++) {
+
         currTopic = this.topicsForThisQuiz.get(i);
+
         int j = 0;
+
         while(j < questionsPerTopic && quiz.size() < quizLength) {
+
           this.quiz.add(this.questionBank.get(currTopic).get
+
               (r.nextInt(this.questionBank.get(currTopic).size())));
+
           ++j;
+
         }
+
       }
+
       while(quiz.size() < this.quizLength) {
+
         this.quiz.add(this.questionBank.get(currTopic).get
+
             (r.nextInt(this.questionBank.get(currTopic).size())));
+
       }
+
       */
-      
+
+     
+
       // Make all questions into Question Nodes so they can be displayed
+
       for(int i = 0; i < this.quiz.size(); i++) {
+
         QuestionNode curr = new QuestionNode(quiz.get(i), new Button("Next"));
+
         this.questionGUI.add(curr);
-        curr.setDisplay(this.QuizGUI(curr.getQuestion(), curr.getNextButton(), curr.getAnswers()));
+
+        curr.setDisplay(this.QuizGUI(curr.getQuestion(), curr.getNextButton(), curr.getAnswers(), i + 1));
+
       }
+
       runQuiz(questionGUI.get(0).getNextButton(), 0, questionGUI.get(0).getAnswers(), score);
+
     }
-    catch(Exception e) {
-      e.printStackTrace();
+    catch(NumberFormatException n) {
       Alert errorAlert = new Alert(AlertType.ERROR);
+
       errorAlert.setHeaderText("Quiz input invalid");;
-      errorAlert.setContentText("Please make sure that number of questions input is a whole number and "
-          + "topics have been selected");
+
+      errorAlert.setContentText("Please make sure that number of questions input is a whole number");
+
       errorAlert.showAndWait();
     }
+
+    catch(Exception e) {
+
+      e.printStackTrace();
+
+      Alert errorAlert = new Alert(AlertType.ERROR);
+
+      errorAlert.setHeaderText("Quiz input invalid");;
+
+      errorAlert.setContentText("Please make sure that number of questions input is a whole number and "
+
+          + "topics have been selected");
+
+      errorAlert.showAndWait();
+
+    }
+
   }
-  
+ 
   public void runQuiz(Button next, int question, ComboBox<String> answers, int score) {
     this.stage.setScene(questionGUI.get(question).getDisplay());
     next.setOnMouseClicked(e -> 
@@ -525,8 +619,8 @@ public class GUI extends Application {
     else {
       Alert errorAlert = new Alert(AlertType.ERROR);
       errorAlert.setHeaderText("Question is not Valid");;
-      errorAlert.setContentText("Please fill out all available fields and make sure that"
-          + "correct answer is an answer choice");
+      errorAlert.setContentText("Please fill out all available fields and make sure that the "
+          + "correct answer is one of the filled out options");
       errorAlert.showAndWait();
     }
   }
@@ -612,7 +706,7 @@ public class GUI extends Application {
       finalStage.setScene(savingScene);
       finalStage.show();
       
-      PauseTransition delay = new PauseTransition(Duration.seconds(5));
+      PauseTransition delay = new PauseTransition(Duration.seconds(1));
       delay.setOnFinished(finishedEvent -> finalStage.close());
       delay.play();
     });
