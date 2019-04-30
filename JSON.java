@@ -66,7 +66,7 @@ public class JSON {
          // Make an object instance of a single choice
          JSONObject singleChoice = (JSONObject) choicesPackage.get(j);
          
-         String possibleSolution = (String) singleChoice.get("iscorrect");
+         String possibleSolution = (String) singleChoice.get("isCorrect");
          
          // Check if the solution, if it is setting it to solution
          if(possibleSolution.equals("T")) {

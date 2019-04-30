@@ -23,11 +23,9 @@ import javafx.stage.Stage;
 
 public class QuestionNode {
   private Button nextButton;
-  private Button previousButton;
   private Question question;
   private Scene display;
-  private ComboBox answerChoices;
-  private Button submit;
+  private ComboBox<String> answerChoices;
   
   public QuestionNode(Question q, Button next) {
     this.nextButton = next;
