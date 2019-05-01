@@ -63,7 +63,6 @@ public class GUI extends Application {
       primaryStage.show();
 
     } catch (Exception e) {
-      e.printStackTrace();
     }
   }
 
@@ -102,7 +101,6 @@ public class GUI extends Application {
     ComboBox<String> choicesDropDown =
         new ComboBox<String>(FXCollections.observableArrayList(topics));
     
-
     // Add choices button
     Button addAChoice = new Button("Add Topic to Quiz Breadth");
     addAChoice.setOnMouseClicked(e -> addTopicToQuiz(choicesDropDown));
@@ -185,12 +183,13 @@ public class GUI extends Application {
     VBox scores = new VBox(20, finalScore, finalPercentage);
         
     root.setCenter(scores);
-    scores.setAlignment(Pos.TOP_CENTER);
+    scores.setAlignment(Pos.CENTER);
 
     scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
     Button newButton = new Button("Done");
     newButton.setOnAction(e -> stage.setScene(MainGUI()));
     bottomPane.setCenter(newButton);
+    newButton.setAlignment(Pos.TOP_CENTER);
 
     return scene;
   }
@@ -224,6 +223,8 @@ public class GUI extends Application {
           FileInputStream input = new FileInputStream(q.getImageFileName());
           Image img = new Image(input);
           ImageView display = new ImageView(img);
+          display.setFitWidth(200);
+          display.setFitHeight(200);
           centerPane.setRight(display);
       } catch (Exception e) {
           Alert badAlarm = new Alert(AlertType.WARNING);
@@ -363,7 +364,11 @@ public class GUI extends Application {
   }
   
   public void addTopicToQuiz(ComboBox<String> c) {
-    if(c.getValue() == null) {
+    if(c.getValue() == null || c.getValue().equals("")) {
+      Alert badAlert = new Alert(AlertType.ERROR);
+      badAlert.setHeaderText("No Topic Selected");
+      badAlert.setContentText("Be sure a topic is selected before adding to quiz breadth");
+      badAlert.showAndWait();
       return;
     }
     this.topicsForThisQuiz.add(c.getValue());
@@ -389,43 +394,27 @@ public class GUI extends Application {
   }
   
   public void generateQuiz(TextField t) {
-
     quiz = new ArrayList<Question>();
-
     questionGUI = new ArrayList<QuestionNode>();
 
     try {
-      
       getQuizSize(t);
-
       LinkedList<Question> visited = new LinkedList<Question>();
-
-     
-
       int score = 0;
-
       // Make an array list with all of the possible questions from the available topics
 
       ArrayList<Question> possibleQuestionsForQuiz = new ArrayList<Question>();
 
       for(int i = 0; i < topicsForThisQuiz.size(); ++i) {
-
         String currTopic = topicsForThisQuiz.get(i);
-
         ArrayList<Question> holder = questionBank.get(currTopic);
-
         for(int j = 0; j < holder.size(); ++j) {
-
           possibleQuestionsForQuiz.add(holder.get(j));
-
         }
 
       }
 
-     
-
       Random rand = new Random();
-
       int QuestionsInQuiz = 0;
 
       // Randomly add questions to quiz, marking visited as such, while you have less questions
@@ -433,83 +422,29 @@ public class GUI extends Application {
       // then requested
 
       while(QuestionsInQuiz < quizLength) {
-
         int holder = Math.abs(rand.nextInt()) % possibleQuestionsForQuiz.size();
-
         Question currQuestion = possibleQuestionsForQuiz.get(holder);
 
         // If the question is already in the quiz, don't add it and look for another
 
         if(visited.contains(currQuestion)) {
-
           continue;
-
         }
 
         // If question isn't in quiz, add it, add it to visited, and increment number in quiz
-
         else {
-
           quiz.add(currQuestion);
-
           visited.add(currQuestion);
-
           QuestionsInQuiz++;
-
         }
 
       }
-
-     
-
-      /*
-
-      int numberOfTopics = this.topicsForThisQuiz.size();
-
-      int questionsPerTopic = 1 + (int) quizLength / numberOfTopics;
-
-      Random r = new Random();
-
-      String currTopic = "";
-
-      for(int i = 0; i < this.topicsForThisQuiz.size(); i++) {
-
-        currTopic = this.topicsForThisQuiz.get(i);
-
-        int j = 0;
-
-        while(j < questionsPerTopic && quiz.size() < quizLength) {
-
-          this.quiz.add(this.questionBank.get(currTopic).get
-
-              (r.nextInt(this.questionBank.get(currTopic).size())));
-
-          ++j;
-
-        }
-
-      }
-
-      while(quiz.size() < this.quizLength) {
-
-        this.quiz.add(this.questionBank.get(currTopic).get
-
-            (r.nextInt(this.questionBank.get(currTopic).size())));
-
-      }
-
-      */
-
-     
 
       // Make all questions into Question Nodes so they can be displayed
 
       for(int i = 0; i < this.quiz.size(); i++) {
-
         QuestionNode curr = new QuestionNode(quiz.get(i), new Button("Next"));
-
         this.questionGUI.add(curr);
-
         curr.setDisplay(this.QuizGUI(curr.getQuestion(), curr.getNextButton(), curr.getAnswers(), i + 1));
 
       }
@@ -519,28 +454,17 @@ public class GUI extends Application {
     }
     catch(NumberFormatException n) {
       Alert errorAlert = new Alert(AlertType.ERROR);
-
       errorAlert.setHeaderText("Quiz input invalid");;
-
       errorAlert.setContentText("Please make sure that number of questions input is a whole number");
-
       errorAlert.showAndWait();
     }
 
     catch(Exception e) {
-
-      e.printStackTrace();
-
       Alert errorAlert = new Alert(AlertType.ERROR);
-
       errorAlert.setHeaderText("Quiz input invalid");;
-
       errorAlert.setContentText("Please make sure that number of questions input is a whole number and "
-
           + "topics have been selected");
-
       errorAlert.showAndWait();
-
     }
 
   }
@@ -571,7 +495,6 @@ public class GUI extends Application {
       }
       // If an exception is caught, display an error message as file was incorrect in some way
       catch(Exception e) {
-        e.printStackTrace();
         Alert errorAlert = new Alert(AlertType.ERROR);
         errorAlert.setHeaderText("File is not Valid");
         errorAlert.setContentText("Your provided file resulted in an exception");
@@ -626,36 +549,42 @@ public class GUI extends Application {
   }
   
   public void checkAnswer(String solution, ComboBox<String> answers, int question, int score) {
-    if(question == quiz.size() - 1) {
-      if(answers.getValue().equals(solution)) {
+    try {
+      if(question == quiz.size() - 1) {
+        if(answers.getValue().equals(solution)) {
+          Alert correctAlert = new Alert(AlertType.CONFIRMATION);
+          correctAlert.setContentText("Answer correct!");
+          correctAlert.showAndWait();
+          score++;
+          this.stage.setScene(EndQuizGUI(score, question));
+        } else {
+          Alert wrongAlert = new Alert(AlertType.ERROR);
+          wrongAlert.setContentText("Answer wrong. The correct answer is " + solution);
+          wrongAlert.showAndWait();
+          this.stage.setScene(EndQuizGUI(score, question));
+        }
+      }   
+     
+      else if(answers.getValue().equals(solution)) {
         Alert correctAlert = new Alert(AlertType.CONFIRMATION);
         correctAlert.setContentText("Answer correct!");
         correctAlert.showAndWait();
         score++;
-        this.stage.setScene(EndQuizGUI(score, question));
-      }
-      else {
+        runQuiz(questionGUI.get(question + 1).getNextButton(), question + 1, questionGUI.get(question + 1).getAnswers(), score);
+      } else {
         Alert wrongAlert = new Alert(AlertType.ERROR);
         wrongAlert.setContentText("Answer wrong. The correct answer is " + solution);
         wrongAlert.showAndWait();
-        this.stage.setScene(EndQuizGUI(score, question));
+        runQuiz(questionGUI.get(question + 1).getNextButton(), question + 1, questionGUI.get(question + 1).getAnswers(), score);
       }
-    
-    }
-    else if(answers.getValue().equals(solution)) {
-      Alert correctAlert = new Alert(AlertType.CONFIRMATION);
-      correctAlert.setContentText("Answer correct!");
-      correctAlert.showAndWait();
-      score++;
-      runQuiz(questionGUI.get(question + 1).getNextButton(), question + 1, questionGUI.get(question + 1).getAnswers(), score);
-    } else {
-      Alert wrongAlert = new Alert(AlertType.ERROR);
-      wrongAlert.setContentText("Answer wrong. The correct answer is " + solution);
-      wrongAlert.showAndWait();
-      runQuiz(questionGUI.get(question + 1).getNextButton(), question + 1, questionGUI.get(question + 1).getAnswers(), score);
-    }
-  } 
-  
+   
+    } catch(Exception e) {
+        Alert errorAlert = new Alert(AlertType.ERROR);
+        errorAlert.setContentText("Please enter an answer.");
+        errorAlert.showAndWait();
+      }
+  }
+
   /**
    * This method will display the final GUI that will ask the user if they want to save all the
    * current questions to a JSON file
@@ -666,20 +595,28 @@ public class GUI extends Application {
     Stage finalStage = new Stage();
     
     //ask user if they want to save
-    Label askToSave = new Label("Would you like to save all current questions to a .JSON file?");
-    askToSave.setFont(new Font("Arial", 30));
+    Label askToSave = new Label("Before you exit, would you like to save all current questions to a .JSON file?");
+    askToSave.setFont(Font.font("Arial", FontWeight.BOLD, 25));
+    askToSave.setTextFill(Color.DARKRED);
+    
+    Label explainSave = new Label("If so, enter a filename below: ");
+    explainSave.setFont(new Font("Arial", 20));
+    explainSave.setTextFill(Color.DARKRED);
     
     //yes and no buttons
-    Button yes = new Button("Yes");
-    yes.setMinWidth(50);
-    Button no = new Button("No");
-    no.setMinWidth(50);
+    Button yes = new Button("Save");
+    yes.setMinWidth(100);
+    Button no = new Button("Exit without Save");
+    no.setMinWidth(200);
     HBox options = new HBox(yes, no);
     HBox.setMargin(yes, new Insets(0, 50, 0, 0));
     
     //HBox spacing = new HBox();
+    // Textfield
+    TextField file = new TextField();
+    file.setMaxWidth(250);
     
-    VBox root = new VBox(askToSave, options);
+    VBox root = new VBox(10, askToSave, explainSave, file, options);
     root.setAlignment(Pos.CENTER);
     VBox.setMargin(options, new Insets(30, 400, 0, 400));
     
@@ -690,29 +627,61 @@ public class GUI extends Application {
     // controls what happens when yes or no is clicked
     yes.setOnMouseClicked(e -> {
       try {
-        jsonHelper.JSONWriter(questionBank.getAllQuestions(), true);
-      }
-      catch(Exception e1) {
-        Alert badAlert = new Alert(AlertType.ERROR);
-        badAlert.setContentText("Unable to Save Questions to File");
-        badAlert.setHeaderText("Unable to Save");
-        badAlert.showAndWait();
         finalStage.close();
+        jsonHelper.JSONWriter(questionBank.getAllQuestions(), true, file);
+        finalJSON();
       }
-      Label saving = new Label("Saving file to .JSON... Please Wait");
-      saving.setFont(new Font("Arial", 30));
-      saving.setAlignment(Pos.CENTER);
-      Scene savingScene = new Scene(saving, 1000, 200);
-      finalStage.setScene(savingScene);
-      finalStage.show();
-      
-      PauseTransition delay = new PauseTransition(Duration.seconds(1));
-      delay.setOnFinished(finishedEvent -> finalStage.close());
-      delay.play();
+      catch (Exception e1) {
+        Alert badAlert = new Alert(AlertType.ERROR);
+        badAlert.setContentText("Make sure you've chosen a valid FileName");
+        badAlert.setHeaderText("File Save Error");
+        badAlert.showAndWait();
+      }
     });
-    no.setOnMouseClicked(e -> finalStage.close());
+    no.setOnMouseClicked(e -> {
+      finalStage.close();
+      confirmChoiceNoSave();
+    });
     
   }
-
+  
+  private void finalJSON() {
+    Stage finalStage = new Stage();
+    Label saving = new Label("Saving file to .JSON... Please Wait");
+    saving.setFont(new Font("Arial", 30));
+    saving.setAlignment(Pos.CENTER);
+    Scene savingScene = new Scene(saving, 1000, 200);
+    finalStage.setScene(savingScene);
+    finalStage.show();
+    
+    PauseTransition delay = new PauseTransition(Duration.seconds(1));
+    delay.setOnFinished(finishedEvent -> finalStage.close());
+    delay.play();
+  }
+  
+  private void confirmChoiceNoSave() {
+    Stage confirmChoice = new Stage();
+    Label exitWithoutSave = new Label("Are you sure you want to exit without saving?");
+    exitWithoutSave.setFont(Font.font("Arial", 20));
+    exitWithoutSave.setTextFill(Color.DARKRED);
+    Button yes = new Button("Yes");
+    Button no = new Button("No");
+    HBox buttons = new HBox(10, yes, no);
+    buttons.setAlignment(Pos.CENTER);
+    VBox toPresent = new VBox(10, exitWithoutSave, buttons);
+    Scene confirmingScene = new Scene(toPresent, 500, 100);
+    toPresent.setAlignment(Pos.CENTER);
+    confirmChoice.setScene(confirmingScene);
+    confirmChoice.show();
+    
+    yes.setOnMouseClicked(e -> confirmChoice.close());
+    
+    no.setOnMouseClicked(e -> {
+      confirmChoice.close();
+      stage.setScene(MainGUI());
+      stage.show();
+    });
+  }
+ 
 }
 

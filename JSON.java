@@ -12,6 +12,7 @@ import java.util.*;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.*;
+import javafx.scene.control.TextField;
 
 public class JSON {
    private ArrayList<Question> questionsFromFile;
@@ -92,11 +93,12 @@ public class JSON {
     * @param save     if the user wants to save
     * @throws IOException
     */
-   public void JSONWriter(ArrayList<Question> quesList, boolean save) throws IOException {
+   public void JSONWriter(ArrayList<Question> quesList, boolean save, TextField fileName) throws IOException {
        JSONObject outputFile = new JSONObject(); // the out most json
-       JSONObject questions = new JSONObject(); // the questions json
+       JSONObject questions; // the questions json
        JSONArray quesArr = new JSONArray(); // store all questions in an array
        for (int i = 0; i < quesList.size(); i++) {
+           questions = new JSONObject();
            questions.put("meta-data", "unused"); // add multiple fields
            questions.put("questionText", quesList.get(i).getQuestion());
            questions.put("topic", quesList.get(i).getTopic());
@@ -120,10 +122,11 @@ public class JSON {
            quesArr.add(questions); // add array
        }
        outputFile.put("questionArray", quesArr);
-       FileWriter file = new FileWriter("save1.json");
+       FileWriter file = new FileWriter(fileName.getText());
        if (save) { // if user wants to save, write to a file
            file.write(outputFile.toJSONString());
            file.flush();
+           file.close();
        }
    }
      
